@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (
-    QAction, QWidgetAction, QWidget, QVBoxLayout, QLabel, QComboBox, QHBoxLayout, QApplication
+    QAction, QWidgetAction, QWidget, QVBoxLayout, QLabel, QComboBox, QHBoxLayout, QApplication, QMenu, QToolTip
 )
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QCursor
@@ -8,13 +8,17 @@ from streak_utils import UPDATE_INTERVALS
 
 APP_VERSION = "2025.606.0"
 
-class ClickableLabel(QLabel):
-    def mousePressEvent(self, event):
-        QApplication.clipboard().setText(APP_VERSION)
-        super().mousePressEvent(event)
+class MyMenu(NonClosingMenu):
+    def event(self, e):
+        if e.type() == 110:  # QEvent.ToolTip
+            action = self.actionAt(e.pos())
+            if action and getattr(action, "_is_version_action", False):
+                QToolTip.showText(e.globalPos(), "Click to copy version")
+                return True
+        return super().event(e)
 
 def createContextMenu(self):
-    menu = NonClosingMenu(self)
+    menu = MyMenu(self)
     scaleWidget = QWidget()
     scaleLayout = QVBoxLayout(scaleWidget)
     scaleLabel = QLabel('Scale, % (100-500)')
@@ -212,15 +216,12 @@ QComboBox QAbstractItemView::item {{
     self.menu_time_timer.start()
     menu.addSeparator()
 
-    versionWidget = QWidget()
-    versionLayout = QHBoxLayout(versionWidget)
-    versionLabel = ClickableLabel(f'Version: {APP_VERSION}')
-    versionLabel.setToolTip("Click to copy version")
-    versionLayout.addWidget(versionLabel)
-    versionLayout.setContentsMargins(8, 0, 8, 0)
-    versionWidget.setLayout(versionLayout)
-    versionAction = QWidgetAction(menu)
-    versionAction.setDefaultWidget(versionWidget)
+    versionAction = QAction(f'Version: {APP_VERSION}', self)
+    versionAction.setEnabled(True)
+    versionAction._is_version_action = True
+    def copy_version_to_clipboard():
+        QApplication.clipboard().setText(APP_VERSION)
+    versionAction.triggered.connect(copy_version_to_clipboard)
     menu.addAction(versionAction)
 
     menu.addSeparator()
