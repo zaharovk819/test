@@ -1,8 +1,8 @@
 from PyQt5.QtWidgets import (
-    QAction, QWidgetAction, QWidget, QVBoxLayout, QLabel, QComboBox, QHBoxLayout, QApplication, QMenu, QToolTip
+    QAction, QWidgetAction, QWidget, QVBoxLayout, QLabel, QComboBox, QHBoxLayout, QApplication, QMenu, QToolTip, QSlider
 )
 from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QCursor
+from PyQt5.QtGui import QCursor, QFont
 from context_menu_processing import SaveOnFocusOutLineEdit, NonClosingMenu
 from streak_utils import UPDATE_INTERVALS
 
@@ -21,45 +21,129 @@ def createContextMenu(self):
     menu = MyMenu(self)
     scaleWidget = QWidget()
     scaleLayout = QVBoxLayout(scaleWidget)
-    scaleLabel = QLabel('Scale, % (100-500)')
-    scaleLabel.setStyleSheet("color: white; padding: 2px 0;")
-    def updateScale():
-        try:
-            value = int(scaleInput.text())
-            value = min(500, max(100, value))
-            scaleInput.setText(str(value))
-            self.setScale(value)
-        except ValueError:
-            scaleInput.setText(str(self.scale))
-    scaleInput = SaveOnFocusOutLineEdit(updateScale)
-    scaleInput.setText(str(self.scale))
-    scaleInput.setFixedWidth(230)
-    scaleInput.setStyleSheet("""
-        QLineEdit {
-            background-color: #3D3D3D;
-            color: white;
-            border: 1px solid #4D4D4D;
-            padding: 5px;
+    scaleLayout.setContentsMargins(5, 5, 5, 5)
+    scaleLayout.setSpacing(2)
+    scaleFont = QFont()
+    scaleFont.setPointSize(10)
+    scaleFont.setWeight(QFont.Normal)
+    scaleTitle = QLabel('Scale (100-500, %)')
+    scaleTitle.setStyleSheet("color: white; font-weight: normal; padding-bottom: 2px;")
+    scaleTitle.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+    scaleTitle.setFont(scaleFont)
+    scaleLayout.addWidget(scaleTitle)
+    sliderRow = QWidget()
+    sliderRowLayout = QHBoxLayout(sliderRow)
+    sliderRowLayout.setContentsMargins(0, 0, 0, 0)
+    sliderRowLayout.setSpacing(0)
+    min_scale = 100
+    max_scale = 500
+    step = 10
+    slider = QSlider(Qt.Horizontal)
+    slider.setMinimum(min_scale)
+    slider.setMaximum(max_scale)
+    slider.setSingleStep(step)
+    slider.setTickInterval(step)
+    slider.setTickPosition(QSlider.TicksBelow)
+    slider.setValue(self.scale)
+    slider.setFixedWidth(180)
+    slider.setStyleSheet("""
+        QSlider::groove:horizontal {
+            border: none;
+            height: 4px;
+            background: #555;
+            margin: 0 8px;
+            border-radius: 2px;
         }
-        QLineEdit:focus {
-            border: 1px solid #4CAF50;
+        QSlider::handle:horizontal {
+            background: #4CAF50;
+            border: 2px solid #388E3C;
+            width: 10px;
+            height: 24px;
+            margin: -10px -2px;
+            border-radius: 2px;
+        }
+        QSlider::handle:horizontal:pressed {
+            background: #81C784;
+            border: 2px solid #388E3C;
+        }
+        QSlider::sub-page:horizontal {
+            background: #888;
+            border-radius: 2px;
+        }
+        QSlider::add-page:horizontal {
+            background: #555;
+            border-radius: 2px;
+        }
+        QSlider::tick-mark {
+            background: #888;
         }
     """)
-    scaleInput.returnPressed.connect(updateScale)
-    scaleLayout.addWidget(scaleLabel)
-    scaleLayout.addWidget(scaleInput)
+    minLabel = QLabel(str(min_scale))
+    minLabel.setStyleSheet("color: white; font-weight: normal;")
+    minLabel.setFixedWidth(28)
+    minLabel.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+    minLabel.setFont(scaleFont)
+    maxLabel = QLabel(str(max_scale))
+    maxLabel.setStyleSheet("color: white; font-weight: normal;")
+    maxLabel.setFixedWidth(28)
+    maxLabel.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+    maxLabel.setFont(scaleFont)
+    valueLabel = QLabel(str(self.scale))
+    valueLabel.setStyleSheet("color: white; font-weight: normal;")
+    valueLabel.setFixedWidth(40)
+    valueLabel.setAlignment(Qt.AlignCenter)
+    valueLabel.setFont(scaleFont)
+    sliderRowLayout.addWidget(minLabel)
+    sliderRowLayout.addWidget(slider)
+    sliderRowLayout.addWidget(maxLabel)
+    sliderRow.setLayout(sliderRowLayout)
+    scaleLayout.addWidget(sliderRow)
+    valueRow = QWidget()
+    valueRowLayout = QHBoxLayout(valueRow)
+    valueRowLayout.setContentsMargins(0, 0, 0, 0)
+    valueRowLayout.setSpacing(0)
+    valueRowLayout.addStretch()
+    valueRowLayout.addWidget(valueLabel)
+    valueRowLayout.addStretch()
+    valueRow.setLayout(valueRowLayout)
+    scaleLayout.addWidget(valueRow)
+    scaleWidget.setLayout(scaleLayout)
     scaleAction = QWidgetAction(menu)
     scaleAction.setDefaultWidget(scaleWidget)
     menu.addAction(scaleAction)
+    def applySliderScale():
+        value = slider.value()
+        snapped = round((value - min_scale) / step) * step + min_scale
+        slider.setValue(snapped)
+        valueLabel.setText(str(snapped))
+        self.setScale(snapped)
+    slider.sliderReleased.connect(applySliderScale)
+    slider.valueChanged.connect(lambda value: valueLabel.setText(str(round((value - min_scale) / step) * step + min_scale)))
+    def sliderMousePressEvent(event):
+        if event.button() == Qt.LeftButton:
+            slider_w = slider.width() - slider.style().pixelMetric(slider.style().PM_SliderLength)
+            handle_w = slider.style().pixelMetric(slider.style().PM_SliderLength)
+            x = event.pos().x() - handle_w // 2
+            x = max(0, min(slider_w, x))
+            value = min_scale + round((x / slider_w) * (max_scale - min_scale) / step) * step
+            slider.setValue(value)
+            valueLabel.setText(str(value))
+            self.setScale(value)
+            slider.setSliderDown(True)
+            slider.setStyleSheet(slider.styleSheet() + "QSlider::handle:horizontal {background: #81C784; border: 2px solid #388E3C;}")
+    slider.mousePressEvent = sliderMousePressEvent
     menu.addSeparator()
     osuWidget = QWidget()
     osuLayout = QVBoxLayout(osuWidget)
     clientIdLabel = QLabel('osu!api Client ID')
     clientIdLabel.setStyleSheet("color: white; padding: 2px 0;")
+    clientIdLabel.setFont(scaleFont)
     clientSecretLabel = QLabel('osu!api Client Secret')
     clientSecretLabel.setStyleSheet("color: white; padding: 2px 0;")
+    clientSecretLabel.setFont(scaleFont)
     usernameLabel = QLabel('osu! Username')
     usernameLabel.setStyleSheet("color: white; padding: 2px 0;")
+    usernameLabel.setFont(scaleFont)
     def updateOsuFields():
         self.update_osu_settings(
             clientIdInput.text(),
@@ -81,6 +165,7 @@ def createContextMenu(self):
             border: 1px solid #4CAF50;
         }
     """)
+    clientIdInput.setFont(scaleFont)
     clientIdInput.returnPressed.connect(updateOsuFields)
     clientSecretInput = SaveOnFocusOutLineEdit(updateOsuFields)
     clientSecretInput.setText(self.osu_client_secret)
@@ -97,6 +182,7 @@ def createContextMenu(self):
             border: 1px solid #4CAF50;
         }
     """)
+    clientSecretInput.setFont(scaleFont)
     clientSecretInput.returnPressed.connect(updateOsuFields)
     usernameInput = SaveOnFocusOutLineEdit(updateOsuFields)
     usernameInput.setText(self.osu_username)
@@ -113,6 +199,7 @@ def createContextMenu(self):
             border: 1px solid #4CAF50;
         }
     """)
+    usernameInput.setFont(scaleFont)
     usernameInput.returnPressed.connect(updateOsuFields)
     osuLayout.addWidget(clientIdLabel)
     osuLayout.addWidget(clientIdInput)
@@ -154,6 +241,7 @@ def createContextMenu(self):
     intervalLayout = QHBoxLayout(intervalWidget)
     intervalLabel = QLabel('Update interval')
     intervalLabel.setStyleSheet("color: white; padding: 2px 0;")
+    intervalLabel.setFont(scaleFont)
     intervalCombo = QComboBox()
     desired_height = 28
     intervalCombo.setStyleSheet(f"""
@@ -182,6 +270,7 @@ QComboBox QAbstractItemView::item {{
     padding: 0 10px;
 }}
 """)
+    intervalCombo.setFont(scaleFont)
     intervalCombo.setFixedHeight(desired_height)
     intervalCombo.view().setStyleSheet(f"QListView::item{{height: {desired_height}px;}}")
     for idx, (interval, label) in enumerate(UPDATE_INTERVALS):
@@ -215,7 +304,6 @@ QComboBox QAbstractItemView::item {{
         self.menu_time_timer.timeout.connect(self._update_menu_time_action)
     self.menu_time_timer.start()
     menu.addSeparator()
-
     versionAction = QAction(f'Version: {APP_VERSION}', self)
     versionAction.setEnabled(True)
     versionAction._is_version_action = True
@@ -223,11 +311,9 @@ QComboBox QAbstractItemView::item {{
         QApplication.clipboard().setText(APP_VERSION)
     versionAction.triggered.connect(copy_version_to_clipboard)
     menu.addAction(versionAction)
-
     menu.addSeparator()
     exitAction = menu.addAction('Exit')
     exitAction.triggered.connect(self.closeApp)
-
     menu.setStyleSheet("""
         QMenu {
             background-color: #2D2D2D;
@@ -269,8 +355,6 @@ QComboBox QAbstractItemView::item {{
     if pos.x() + menu_size.width() > screen.right():
         pos.setX(pos.x() - menu_size.width())
     menu.exec_(pos)
-    scaleInput.setFocus()
-    scaleInput.selectAll()
     self.open_context_menu = None
     self.menu_time_action = None
     self.menu_time_timer.stop()
