@@ -8,6 +8,11 @@ from streak_utils import UPDATE_INTERVALS
 
 APP_VERSION = "2025.606.0"
 
+class ClickableLabel(QLabel):
+    def mousePressEvent(self, event):
+        QApplication.clipboard().setText(APP_VERSION)
+        super().mousePressEvent(event)
+
 def createContextMenu(self):
     menu = NonClosingMenu(self)
     scaleWidget = QWidget()
@@ -207,12 +212,15 @@ QComboBox QAbstractItemView::item {{
     self.menu_time_timer.start()
     menu.addSeparator()
 
-    versionAction = QAction(f'Version: {APP_VERSION}', self)
-    versionAction.setEnabled(True) 
-    def copy_version_to_clipboard():
-        QApplication.clipboard().setText(APP_VERSION)
-    versionAction.triggered.connect(copy_version_to_clipboard)
-    versionAction.setToolTip("Click to copy version to clipboard")
+    versionWidget = QWidget()
+    versionLayout = QHBoxLayout(versionWidget)
+    versionLabel = ClickableLabel(f'Version: {APP_VERSION}')
+    versionLabel.setToolTip("Click to copy version")
+    versionLayout.addWidget(versionLabel)
+    versionLayout.setContentsMargins(8, 0, 8, 0)
+    versionWidget.setLayout(versionLayout)
+    versionAction = QWidgetAction(menu)
+    versionAction.setDefaultWidget(versionWidget)
     menu.addAction(versionAction)
 
     menu.addSeparator()
