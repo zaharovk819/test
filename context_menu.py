@@ -231,6 +231,7 @@ def createContextMenu(self):
     menu.addSeparator()
     manualUpdateAction = QAction('Manual Update', self)
     manualUpdateAction.setToolTip("Click to manually refresh the widget (same as F5)")
+    manualUpdateAction.triggered.connect(self.update_streak)
     menu.addAction(manualUpdateAction)
     menu.addSeparator()
     alwaysOnTopAction = QAction('Always on Top', self)

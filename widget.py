@@ -1,7 +1,8 @@
 import sys
 import os
 from datetime import datetime, timezone
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QAction
+from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect, QTimer
 from PyQt5.QtWebEngineWidgets import QWebEngineSettings, QWebEngineProfile
 from autostart_utils import add_to_startup_registry, remove_from_startup_registry, is_in_startup_registry
@@ -76,10 +77,78 @@ class Widget(QMainWindow, MouseMoveMixin):
         self.arrow_step = 2
         self.last_update_time = None
         self.update_interval = self.settings.get('update_interval', UPDATE_INTERVALS[0][0])
+
+        self.tray_icon = None
+        self.init_tray_icon()
+
         self.initUI()
         self.update_timer = QTimer()
         self.update_timer.timeout.connect(self.on_update_timer)
         self.restart_update_timer()
+
+    def init_tray_icon(self):
+        icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'DCCW.ico')
+        icon = QIcon(icon_path)
+        self.tray_icon = QSystemTrayIcon(self)
+        self.tray_icon.setIcon(icon)
+        self.tray_icon.setToolTip("DCCW")
+
+        tray_menu = QMenu()
+        tray_menu.setStyleSheet("""
+            QMenu {
+                background-color: #2D2D2D;
+                color: white;
+                border: 1px solid #3D3D3D;
+                padding: 5px;
+            }
+            QMenu::item {
+                background-color: transparent;
+                padding: 5px 20px;
+            }
+            QMenu::item:selected {
+                background-color: #3D3D3D;
+            }
+            QMenu::item:disabled {
+                color: #808080;
+            }
+            QMenu::item:disabled:selected {
+                background-color: transparent;
+            }
+            QMenu::indicator {
+                width: 15px;
+                height: 15px;
+            }
+            QMenu::indicator:checked {
+                background: #4CAF50;
+            }
+            QLabel {
+                color: white;
+                padding: 2px 0;
+            }
+            QWidget {
+                background-color: #2D2D2D;
+            }
+        """)
+
+        show_action = QAction("Show", self)
+        show_action.triggered.connect(self.showNormal)
+        tray_menu.addAction(show_action)
+
+        quit_action = QAction("Quit", self)
+        quit_action.triggered.connect(QApplication.instance().quit)
+        tray_menu.addAction(quit_action)
+
+        self.tray_icon.setContextMenu(tray_menu)
+        self.tray_icon.activated.connect(self.on_tray_icon_activated)
+        self.tray_icon.show()
+
+    def on_tray_icon_activated(self, reason):
+        if reason == QSystemTrayIcon.Trigger:
+            if self.isVisible():
+                self.hide()
+            else:
+                self.showNormal()
+                self.activateWindow()
 
     def update_menu_time_action(self):
         if self.open_context_menu and self.menu_time_action:
@@ -263,11 +332,15 @@ class Widget(QMainWindow, MouseMoveMixin):
         QApplication.instance().quit()
 
     def closeEvent(self, event):
-        try:
-            self.closeApp()
-        except SystemExit:
-            QApplication.instance().quit()
-        event.accept()
+        event.ignore()
+        self.hide()
+        if self.tray_icon:
+            self.tray_icon.showMessage(
+                "DCCW",
+                "The application was minimized to the tray. Click the tray icon to restore.",
+                QSystemTrayIcon.Information,
+                2000
+            )
 
     def createContextMenu(self):
         createContextMenu(self)
