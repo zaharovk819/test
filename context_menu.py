@@ -1,8 +1,8 @@
 from PyQt5.QtWidgets import (
-    QAction, QWidgetAction, QWidget, QVBoxLayout, QLabel, QComboBox, QHBoxLayout, QApplication, QMenu, QToolTip, QSlider
+    QAction, QWidgetAction, QWidget, QVBoxLayout, QLabel, QComboBox, QHBoxLayout, QApplication, QMenu, QToolTip, QSlider, QStyleOptionSlider
 )
 from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QCursor, QFont
+from PyQt5.QtGui import QCursor
 from context_menu_processing import SaveOnFocusOutLineEdit, NonClosingMenu
 from streak_utils import UPDATE_INTERVALS
 
@@ -23,14 +23,15 @@ def createContextMenu(self):
     scaleLayout = QVBoxLayout(scaleWidget)
     scaleLayout.setContentsMargins(5, 5, 5, 5)
     scaleLayout.setSpacing(2)
-    scaleFont = QFont()
-    scaleFont.setPointSize(10)
-    scaleFont.setWeight(QFont.Normal)
+
+    default_font = QApplication.font("QMenu")
+
     scaleTitle = QLabel('Scale (100-500, %)')
     scaleTitle.setStyleSheet("color: white; font-weight: normal; padding-bottom: 2px;")
     scaleTitle.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-    scaleTitle.setFont(scaleFont)
+    scaleTitle.setFont(default_font)
     scaleLayout.addWidget(scaleTitle)
+
     sliderRow = QWidget()
     sliderRowLayout = QHBoxLayout(sliderRow)
     sliderRowLayout.setContentsMargins(0, 0, 0, 0)
@@ -46,6 +47,7 @@ def createContextMenu(self):
     slider.setTickPosition(QSlider.TicksBelow)
     slider.setValue(self.scale)
     slider.setFixedWidth(180)
+    slider.setFont(default_font)
     slider.setStyleSheet("""
         QSlider::groove:horizontal {
             border: none;
@@ -82,17 +84,17 @@ def createContextMenu(self):
     minLabel.setStyleSheet("color: white; font-weight: normal;")
     minLabel.setFixedWidth(28)
     minLabel.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-    minLabel.setFont(scaleFont)
+    minLabel.setFont(default_font)
     maxLabel = QLabel(str(max_scale))
     maxLabel.setStyleSheet("color: white; font-weight: normal;")
     maxLabel.setFixedWidth(28)
     maxLabel.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-    maxLabel.setFont(scaleFont)
+    maxLabel.setFont(default_font)
     valueLabel = QLabel(str(self.scale))
     valueLabel.setStyleSheet("color: white; font-weight: normal;")
     valueLabel.setFixedWidth(40)
     valueLabel.setAlignment(Qt.AlignCenter)
-    valueLabel.setFont(scaleFont)
+    valueLabel.setFont(default_font)
     sliderRowLayout.addWidget(minLabel)
     sliderRowLayout.addWidget(slider)
     sliderRowLayout.addWidget(maxLabel)
@@ -111,6 +113,7 @@ def createContextMenu(self):
     scaleAction = QWidgetAction(menu)
     scaleAction.setDefaultWidget(scaleWidget)
     menu.addAction(scaleAction)
+
     def applySliderScale():
         value = slider.value()
         snapped = round((value - min_scale) / step) * step + min_scale
@@ -119,31 +122,45 @@ def createContextMenu(self):
         self.setScale(snapped)
     slider.sliderReleased.connect(applySliderScale)
     slider.valueChanged.connect(lambda value: valueLabel.setText(str(round((value - min_scale) / step) * step + min_scale)))
+    original_mousePressEvent = slider.mousePressEvent
     def sliderMousePressEvent(event):
-        if event.button() == Qt.LeftButton:
-            slider_w = slider.width() - slider.style().pixelMetric(slider.style().PM_SliderLength)
+        if event.button() == Qt.LeftButton and slider.rect().contains(event.pos()):
             handle_w = slider.style().pixelMetric(slider.style().PM_SliderLength)
-            x = event.pos().x() - handle_w // 2
-            x = max(0, min(slider_w, x))
-            value = min_scale + round((x / slider_w) * (max_scale - min_scale) / step) * step
-            slider.setValue(value)
-            valueLabel.setText(str(value))
-            self.setScale(value)
-            slider.setSliderDown(True)
-            slider.setStyleSheet(slider.styleSheet() + "QSlider::handle:horizontal {background: #81C784; border: 2px solid #388E3C;}")
+            opt = QStyleOptionSlider()
+            slider.initStyleOption(opt)
+            handle_rect = slider.style().subControlRect(
+                slider.style().CC_Slider,
+                opt,
+                slider.style().SC_SliderHandle,
+                slider
+            )
+            if not handle_rect.contains(event.pos()):
+                slider_w = slider.width() - handle_w
+                x = event.pos().x() - handle_w // 2
+                x = max(0, min(slider_w, x))
+                value = min_scale + round((x / slider_w) * (max_scale - min_scale) / step) * step
+                slider.setValue(value)
+                valueLabel.setText(str(value))
+                self.setScale(value)
+                slider.setSliderDown(False)
+            else:
+                original_mousePressEvent(event)
+        else:
+            original_mousePressEvent(event)
     slider.mousePressEvent = sliderMousePressEvent
+
     menu.addSeparator()
     osuWidget = QWidget()
     osuLayout = QVBoxLayout(osuWidget)
     clientIdLabel = QLabel('osu!api Client ID')
     clientIdLabel.setStyleSheet("color: white; padding: 2px 0;")
-    clientIdLabel.setFont(scaleFont)
+    clientIdLabel.setFont(default_font)
     clientSecretLabel = QLabel('osu!api Client Secret')
     clientSecretLabel.setStyleSheet("color: white; padding: 2px 0;")
-    clientSecretLabel.setFont(scaleFont)
+    clientSecretLabel.setFont(default_font)
     usernameLabel = QLabel('osu! Username')
     usernameLabel.setStyleSheet("color: white; padding: 2px 0;")
-    usernameLabel.setFont(scaleFont)
+    usernameLabel.setFont(default_font)
     def updateOsuFields():
         self.update_osu_settings(
             clientIdInput.text(),
@@ -165,7 +182,7 @@ def createContextMenu(self):
             border: 1px solid #4CAF50;
         }
     """)
-    clientIdInput.setFont(scaleFont)
+    clientIdInput.setFont(default_font)
     clientIdInput.returnPressed.connect(updateOsuFields)
     clientSecretInput = SaveOnFocusOutLineEdit(updateOsuFields)
     clientSecretInput.setText(self.osu_client_secret)
@@ -182,7 +199,7 @@ def createContextMenu(self):
             border: 1px solid #4CAF50;
         }
     """)
-    clientSecretInput.setFont(scaleFont)
+    clientSecretInput.setFont(default_font)
     clientSecretInput.returnPressed.connect(updateOsuFields)
     usernameInput = SaveOnFocusOutLineEdit(updateOsuFields)
     usernameInput.setText(self.osu_username)
@@ -199,7 +216,7 @@ def createContextMenu(self):
             border: 1px solid #4CAF50;
         }
     """)
-    usernameInput.setFont(scaleFont)
+    usernameInput.setFont(default_font)
     usernameInput.returnPressed.connect(updateOsuFields)
     osuLayout.addWidget(clientIdLabel)
     osuLayout.addWidget(clientIdInput)
@@ -214,7 +231,6 @@ def createContextMenu(self):
     menu.addSeparator()
     manualUpdateAction = QAction('Manual Update', self)
     manualUpdateAction.setToolTip("Click to manually refresh the widget (same as F5)")
-    manualUpdateAction.triggered.connect(self.update_streak)
     menu.addAction(manualUpdateAction)
     menu.addSeparator()
     alwaysOnTopAction = QAction('Always on Top', self)
@@ -241,7 +257,7 @@ def createContextMenu(self):
     intervalLayout = QHBoxLayout(intervalWidget)
     intervalLabel = QLabel('Update interval')
     intervalLabel.setStyleSheet("color: white; padding: 2px 0;")
-    intervalLabel.setFont(scaleFont)
+    intervalLabel.setFont(default_font)
     intervalCombo = QComboBox()
     desired_height = 28
     intervalCombo.setStyleSheet(f"""
@@ -270,7 +286,7 @@ QComboBox QAbstractItemView::item {{
     padding: 0 10px;
 }}
 """)
-    intervalCombo.setFont(scaleFont)
+    intervalCombo.setFont(default_font)
     intervalCombo.setFixedHeight(desired_height)
     intervalCombo.view().setStyleSheet(f"QListView::item{{height: {desired_height}px;}}")
     for idx, (interval, label) in enumerate(UPDATE_INTERVALS):
