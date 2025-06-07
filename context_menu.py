@@ -10,7 +10,7 @@ APP_VERSION = "2025.606.0"
 
 class MyMenu(NonClosingMenu):
     def event(self, e):
-        if e.type() == 110:  # QEvent.ToolTip
+        if e.type() == 110: 
             action = self.actionAt(e.pos())
             if action and getattr(action, "_is_version_action", False):
                 QToolTip.showText(e.globalPos(), "Click to copy version")
@@ -53,7 +53,7 @@ def createContextMenu(self):
             border: none;
             height: 4px;
             background: #555;
-            margin: 0 8px;
+            margin: 0; /* убрали отступы, чтобы ручка доходила до края */
             border-radius: 2px;
         }
         QSlider::handle:horizontal {
@@ -61,7 +61,7 @@ def createContextMenu(self):
             border: 2px solid #388E3C;
             width: 10px;
             height: 24px;
-            margin: -10px -2px;
+            margin: -10px 0; /* убрали левый margin */
             border-radius: 2px;
         }
         QSlider::handle:horizontal:pressed {
@@ -82,7 +82,7 @@ def createContextMenu(self):
     """)
     minLabel = QLabel(str(min_scale))
     minLabel.setStyleSheet("color: white; font-weight: normal;")
-    minLabel.setFixedWidth(28)
+    minLabel.setFixedWidth(24)
     minLabel.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
     minLabel.setFont(default_font)
     maxLabel = QLabel(str(max_scale))
