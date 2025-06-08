@@ -347,15 +347,11 @@ class Widget(QMainWindow, MouseMoveMixin):
         QApplication.instance().quit()
 
     def closeEvent(self, event):
-        event.ignore()
-        self.hide()
-        if self.tray_icon:
-            self.tray_icon.showMessage(
-                "DCCW",
-                "The application was minimized to the tray. Click the tray icon to restore.",
-                QSystemTrayIcon.Information,
-                2000
-            )
+        try:
+            self.closeApp()
+        except SystemExit:
+            QApplication.instance().quit()
+        event.accept()
 
     def createContextMenu(self):
         createContextMenu(self)
