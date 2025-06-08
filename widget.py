@@ -69,6 +69,12 @@ class Widget(QMainWindow, MouseMoveMixin):
         self.menu_time_timer.setInterval(1000)
         self.menu_time_timer.timeout.connect(self.update_menu_time_action)
 
+        # For tray update time
+        self.tray_time_action = None
+        self.tray_time_timer = QTimer(self)
+        self.tray_time_timer.setInterval(1000)
+        self.tray_time_timer.timeout.connect(self.update_tray_time_action)
+
         if getattr(sys, 'frozen', False) and self.settings.get('autostart', True):
             add_to_startup_registry()
 
@@ -141,12 +147,34 @@ class Widget(QMainWindow, MouseMoveMixin):
             show_action.triggered.connect(self.show_from_tray)
             tray_menu.addAction(show_action)
 
+        # --- Add update time field like in context menu ---
+        if self.last_update_time:
+            local_update_time = self.last_update_time.astimezone()
+            update_str = local_update_time.strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            update_str = "-"
+        tray_time_action = QAction(f'Updated: {update_str}', self)
+        tray_time_action.setEnabled(False)
+        tray_menu.addAction(tray_time_action)
+        self.tray_time_action = tray_time_action
+        self.tray_time_timer.start()
+        # --- end of block ---
+
         quit_action = QAction("Quit", self)
         quit_action.triggered.connect(QApplication.instance().quit)
         tray_menu.addAction(quit_action)
 
         self.tray_icon.setContextMenu(tray_menu)
         self.tray_menu = tray_menu
+
+    def update_tray_time_action(self):
+        if self.tray_time_action:
+            if self.last_update_time:
+                local_update_time = self.last_update_time.astimezone()
+                update_str = local_update_time.strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                update_str = "-"
+            self.tray_time_action.setText(f'Updated: {update_str}')
 
     def show_from_tray(self):
         # Show the window and bring it to the front, if not always on top
@@ -344,6 +372,7 @@ class Widget(QMainWindow, MouseMoveMixin):
             self.webView.setHtml("")
             self.webView.close()
             self.webView.deleteLater()
+        self.tray_time_timer.stop()
         QApplication.instance().quit()
 
     def closeEvent(self, event):
