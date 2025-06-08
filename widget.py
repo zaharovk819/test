@@ -79,6 +79,7 @@ class Widget(QMainWindow, MouseMoveMixin):
         self.update_interval = self.settings.get('update_interval', UPDATE_INTERVALS[0][0])
 
         self.tray_icon = None
+        self.tray_menu = None  # Store tray menu to recreate it dynamically
         self.init_tray_icon()
 
         self.initUI()
@@ -92,7 +93,11 @@ class Widget(QMainWindow, MouseMoveMixin):
         self.tray_icon = QSystemTrayIcon(self)
         self.tray_icon.setIcon(icon)
         self.tray_icon.setToolTip("DCCW")
+        self.update_tray_menu()
+        self.tray_icon.activated.connect(self.on_tray_icon_activated)
+        self.tray_icon.show()
 
+    def update_tray_menu(self):
         tray_menu = QMenu()
         tray_menu.setStyleSheet("""
             QMenu {
@@ -130,25 +135,46 @@ class Widget(QMainWindow, MouseMoveMixin):
             }
         """)
 
-        show_action = QAction("Show", self)
-        show_action.triggered.connect(self.showNormal)
-        tray_menu.addAction(show_action)
+        # Show only if always_on_top is False
+        if not self.always_on_top:
+            show_action = QAction("Show", self)
+            show_action.triggered.connect(self.show_from_tray)
+            tray_menu.addAction(show_action)
 
         quit_action = QAction("Quit", self)
         quit_action.triggered.connect(QApplication.instance().quit)
         tray_menu.addAction(quit_action)
 
         self.tray_icon.setContextMenu(tray_menu)
-        self.tray_icon.activated.connect(self.on_tray_icon_activated)
-        self.tray_icon.show()
+        self.tray_menu = tray_menu
+
+    def show_from_tray(self):
+        # Show the window and bring it to the front, if not always on top
+        if not self.always_on_top:
+            self.showNormal()
+            self.activateWindow()
+            self.raise_()
+
+    def toggle_always_on_top(self):
+        self.always_on_top = not self.always_on_top
+        flags = Qt.FramelessWindowHint | Qt.Tool
+        if self.always_on_top:
+            flags |= Qt.WindowStaysOnTopHint
+        self.setWindowFlags(flags)
+        current_pos = self.pos()
+        self.show()
+        self.move(current_pos)
+        self.save_settings()
+        self.update_tray_menu()  # Update tray menu when always_on_top changes
 
     def on_tray_icon_activated(self, reason):
         if reason == QSystemTrayIcon.Trigger:
             if self.isVisible():
                 self.hide()
             else:
-                self.showNormal()
-                self.activateWindow()
+                # Only show window if allowed (always_on_top is False)
+                if not self.always_on_top:
+                    self.show_from_tray()
 
     def update_menu_time_action(self):
         if self.open_context_menu and self.menu_time_action:
@@ -241,17 +267,6 @@ class Widget(QMainWindow, MouseMoveMixin):
         self.repaint()
         self.update()
         QApplication.processEvents()
-
-    def toggle_always_on_top(self):
-        self.always_on_top = not self.always_on_top
-        flags = Qt.FramelessWindowHint | Qt.Tool
-        if self.always_on_top:
-            flags |= Qt.WindowStaysOnTopHint
-        self.setWindowFlags(flags)
-        current_pos = self.pos()
-        self.show()
-        self.move(current_pos)
-        self.save_settings()
 
     def toggle_autostart(self):
         if is_in_startup_registry():
