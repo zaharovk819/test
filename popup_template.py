@@ -210,11 +210,11 @@ HTML_POPUP_TEMPLATE = """<!DOCTYPE html>
             </div>
             <div class="daily-challenge-popup__row">
               <div class="daily-challenge-popup__key">Top 10% Placements</div>
-              <div class="daily-challenge-popup__value">666</div>
+              <div class="daily-challenge-popup__value">{top_10p_placements}</div>
             </div>
             <div class="daily-challenge-popup__row">
               <div class="daily-challenge-popup__key">Top 50% Placements</div>
-              <div class="daily-challenge-popup__value">666</div>
+              <div class="daily-challenge-popup__value">{top_50p_placements}</div>
             </div>
           </div>
         </div>
