@@ -27,12 +27,13 @@ def get_daily_streak(
 ):
     use_alternative_template = False
     new_last_update_time = last_update_time
+    daily_streak_current = 0
     try:
         if not osu_client_id or not osu_client_secret or not osu_username:
             if enable_logging:
                 print("[osu!api] Skipping API request - missing credentials")
             use_alternative_template = False
-            return '0d', use_alternative_template, new_last_update_time
+            return '0d', use_alternative_template, new_last_update_time, daily_streak_current
         if enable_logging:
             print(f"[osu!api] All credentials present, sending request for user {osu_username}")
         try:
@@ -63,17 +64,17 @@ def get_daily_streak(
             else:
                 use_alternative_template = False
             new_last_update_time = datetime.now(timezone.utc)
-            return f"{streak_value}d", use_alternative_template, new_last_update_time
+            return f"{streak_value}d", use_alternative_template, new_last_update_time, daily_streak_current
         except Exception as api_error:
             if enable_logging:
                 print(f"[osu!api] API request error: {api_error}")
             use_alternative_template = False
-            return '0d', use_alternative_template, new_last_update_time
+            return '0d', use_alternative_template, new_last_update_time, daily_streak_current
     except Exception as e:
         if enable_logging:
             print(f"[osu!api] Error getting daily streak: {e}")
         use_alternative_template = False
-        return '0d', use_alternative_template, new_last_update_time
+        return '0d', use_alternative_template, new_last_update_time, daily_streak_current
 
 def get_streak_colour_var(streak_value):
     try:
@@ -98,7 +99,7 @@ def get_streak_colour_var(streak_value):
         return '--level-tier-iron'
 
 def update_streak(widget):
-    streak_value, use_alternative_template, new_last_update_time = get_daily_streak(
+    streak_value, use_alternative_template, new_last_update_time, daily_streak_current = get_daily_streak(
         osu_client_id=widget.osu_client_id,
         osu_client_secret=widget.osu_client_secret,
         osu_username=widget.osu_username,
@@ -110,6 +111,7 @@ def update_streak(widget):
     widget.use_alternative_template = use_alternative_template
     widget.last_update_time = new_last_update_time
     widget.popup_streak_value = streak_value
+    widget.popup_daily_streak_current = daily_streak_current
     streak_colour_var = get_streak_colour_var(streak_value)
     current_template = ALTERNATIVE_TEMPLATE if widget.use_alternative_template else DEFAULT_TEMPLATE
     local_time = datetime.now().astimezone()

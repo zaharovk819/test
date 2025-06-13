@@ -90,6 +90,7 @@ class Widget(QMainWindow, MouseMoveMixin):
 
         self.popup = None
         self.popup_streak_value = '0d'
+        self.popup_daily_streak_current = 0
 
         self.initUI()
         self.update_timer = QTimer()
@@ -495,7 +496,14 @@ class Widget(QMainWindow, MouseMoveMixin):
             if self.popup.isVisible():
                 return
             self.popup.setFixedSize(popup_width, popup_height)
-        html = HTML_POPUP_TEMPLATE.format(streak_value=self.popup_streak_value)
+
+        daily_streak_current = getattr(self, "popup_daily_streak_current", 0)
+        daily_streak_current_str = f"{daily_streak_current}d"
+
+        html = HTML_POPUP_TEMPLATE.format(
+            streak_value=self.popup_streak_value,
+            daily_streak_current=daily_streak_current_str
+        )
         self.popup.setHtml(html)
         self.popup.move(popup_pos)
         self.popup.show()
