@@ -94,6 +94,8 @@ class Widget(QMainWindow, MouseMoveMixin):
         self.popup_weekly_streak_current = 0
         self.popup_daily_streak_best = 0
         self.popup_weekly_streak_best = 0
+        self.popup_top_10p_placements = 0
+        self.popup_top_50p_placements = 0
 
         self.initUI()
         self.update_timer = QTimer()
@@ -504,17 +506,23 @@ class Widget(QMainWindow, MouseMoveMixin):
         weekly_streak_current = getattr(self, "popup_weekly_streak_current", 0)
         daily_streak_best = getattr(self, "popup_daily_streak_best", 0)
         weekly_streak_best = getattr(self, "popup_weekly_streak_best", 0)
+        top_10p_placements = getattr(self, "popup_top_10p_placements", 0)
+        top_50p_placements = getattr(self, "popup_top_50p_placements", 0)
         daily_streak_current_str = f"{daily_streak_current}d"
         weekly_streak_current_str = f"{weekly_streak_current}w"
         daily_streak_best_str = f"{daily_streak_best}d"
         weekly_streak_best_str = f"{weekly_streak_best}w"
+        top_10p_placements_str = f"{top_10p_placements}"
+        top_50p_placements_str = f"{top_50p_placements}"
 
         html = HTML_POPUP_TEMPLATE.format(
             streak_value=self.popup_streak_value,
             daily_streak_current=daily_streak_current_str,
             weekly_streak_current=weekly_streak_current_str,
             daily_streak_best=daily_streak_best_str,
-            weekly_streak_best=weekly_streak_best_str
+            weekly_streak_best=weekly_streak_best_str,
+            top_10p_placements=top_10p_placements_str,
+            top_50p_placements=top_50p_placements_str
         )
         self.popup.setHtml(html)
         self.popup.move(popup_pos)
