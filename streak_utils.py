@@ -40,6 +40,7 @@ def get_daily_streak(
             user = api.user(osu_username)
             streak_value = user.daily_challenge_user_stats.playcount
             last_update_date = user.daily_challenge_user_stats.last_update
+            daily_streak_current = user.daily_challenge_user_stats.daily_streak_current
             if isinstance(last_update_date, str):
                 last_update_str = last_update_date.split(" ")[0]
             elif isinstance(last_update_date, datetime):
@@ -108,6 +109,7 @@ def update_streak(widget):
     )
     widget.use_alternative_template = use_alternative_template
     widget.last_update_time = new_last_update_time
+    widget.popup_streak_value = streak_value
     streak_colour_var = get_streak_colour_var(streak_value)
     current_template = ALTERNATIVE_TEMPLATE if widget.use_alternative_template else DEFAULT_TEMPLATE
     local_time = datetime.now().astimezone()

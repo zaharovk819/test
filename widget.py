@@ -89,6 +89,7 @@ class Widget(QMainWindow, MouseMoveMixin):
         self.init_tray_icon()
 
         self.popup = None
+        self.popup_streak_value = '0d'
 
         self.initUI()
         self.update_timer = QTimer()
@@ -494,7 +495,8 @@ class Widget(QMainWindow, MouseMoveMixin):
             if self.popup.isVisible():
                 return
             self.popup.setFixedSize(popup_width, popup_height)
-        self.popup.setHtml(HTML_POPUP_TEMPLATE)
+        html = HTML_POPUP_TEMPLATE.format(streak_value=self.popup_streak_value)
+        self.popup.setHtml(html)
         self.popup.move(popup_pos)
         self.popup.show()
         self.popup.raise_()
