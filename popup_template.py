@@ -206,7 +206,7 @@ HTML_POPUP_TEMPLATE = """<!DOCTYPE html>
             </div>
             <div class="daily-challenge-popup__row">
               <div class="daily-challenge-popup__key">Best Weekly Streak</div>
-              <div class="daily-challenge-popup__value daily-challenge-popup__value--fancy daily-challenge-popup__value--weekly" style="--colour:var(--level-tier-radiant)">666w</div>
+              <div class="daily-challenge-popup__value daily-challenge-popup__value--fancy daily-challenge-popup__value--weekly" style="--colour:var(--level-tier-radiant)">{weekly_streak_best}</div>
             </div>
             <div class="daily-challenge-popup__row">
               <div class="daily-challenge-popup__key">Top 10% Placements</div>

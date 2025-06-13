@@ -91,6 +91,8 @@ class Widget(QMainWindow, MouseMoveMixin):
         self.popup = None
         self.popup_streak_value = '0d'
         self.popup_daily_streak_current = 0
+        self.popup_weekly_streak_current = 0
+        self.popup_daily_streak_best = 0
 
         self.initUI()
         self.update_timer = QTimer()
@@ -498,11 +500,17 @@ class Widget(QMainWindow, MouseMoveMixin):
             self.popup.setFixedSize(popup_width, popup_height)
 
         daily_streak_current = getattr(self, "popup_daily_streak_current", 0)
+        weekly_streak_current = getattr(self, "popup_weekly_streak_current", 0)
+        daily_streak_best = getattr(self, "popup_daily_streak_best", 0)
         daily_streak_current_str = f"{daily_streak_current}d"
+        weekly_streak_current_str = f"{weekly_streak_current}w"
+        daily_streak_best_str = f"{daily_streak_best}d"
 
         html = HTML_POPUP_TEMPLATE.format(
             streak_value=self.popup_streak_value,
-            daily_streak_current=daily_streak_current_str
+            daily_streak_current=daily_streak_current_str,
+            weekly_streak_current=weekly_streak_current_str,
+            daily_streak_best=daily_streak_best_str
         )
         self.popup.setHtml(html)
         self.popup.move(popup_pos)
