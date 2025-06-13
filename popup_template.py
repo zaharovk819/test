@@ -188,33 +188,33 @@ HTML_POPUP_TEMPLATE = """<!DOCTYPE html>
           <div class="daily-challenge-popup__content daily-challenge-popup__content--top">
             <div class="daily-challenge-popup__top-entry">
               <div class="daily-challenge-popup__top-title">Total Participation</div>
-              <div class="daily-challenge-popup__value daily-challenge-popup__value--fancy daily-challenge-popup__value--top" style="--colour:var(--level-tier-platinum)">322d</div>
+              <div class="daily-challenge-popup__value daily-challenge-popup__value--fancy daily-challenge-popup__value--top" style="--colour:var(--level-tier-platinum)">6666d</div>
             </div>
             <div class="daily-challenge-popup__top-entry">
               <div class="daily-challenge-popup__top-title">Current Daily Streak</div>
-              <div class="daily-challenge-popup__value daily-challenge-popup__value--fancy daily-challenge-popup__value--top" style="--colour:var(--level-tier-radiant)">322d</div>
+              <div class="daily-challenge-popup__value daily-challenge-popup__value--fancy daily-challenge-popup__value--top" style="--colour:var(--level-tier-radiant)">6666d</div>
             </div>
             <div class="daily-challenge-popup__top-entry">
               <div class="daily-challenge-popup__top-title">Current Weekly Streak</div>
-              <div class="daily-challenge-popup__value daily-challenge-popup__value--fancy daily-challenge-popup__value--top" style="--colour:var(--level-tier-radiant)">46w</div>
+              <div class="daily-challenge-popup__value daily-challenge-popup__value--fancy daily-challenge-popup__value--top" style="--colour:var(--level-tier-radiant)">666w</div>
             </div>
           </div>
           <div class="daily-challenge-popup__content daily-challenge-popup__content--main">
             <div class="daily-challenge-popup__row">
               <div class="daily-challenge-popup__key">Best Daily Streak</div>
-              <div class="daily-challenge-popup__value daily-challenge-popup__value--fancy" style="--colour:var(--level-tier-radiant)">322d</div>
+              <div class="daily-challenge-popup__value daily-challenge-popup__value--fancy" style="--colour:var(--level-tier-radiant)">6666d</div>
             </div>
             <div class="daily-challenge-popup__row">
               <div class="daily-challenge-popup__key">Best Weekly Streak</div>
-              <div class="daily-challenge-popup__value daily-challenge-popup__value--fancy daily-challenge-popup__value--weekly" style="--colour:var(--level-tier-radiant)">46w</div>
+              <div class="daily-challenge-popup__value daily-challenge-popup__value--fancy daily-challenge-popup__value--weekly" style="--colour:var(--level-tier-radiant)">666w</div>
             </div>
             <div class="daily-challenge-popup__row">
               <div class="daily-challenge-popup__key">Top 10% Placements</div>
-              <div class="daily-challenge-popup__value">23</div>
+              <div class="daily-challenge-popup__value">666</div>
             </div>
             <div class="daily-challenge-popup__row">
               <div class="daily-challenge-popup__key">Top 50% Placements</div>
-              <div class="daily-challenge-popup__value">129</div>
+              <div class="daily-challenge-popup__value">666</div>
             </div>
           </div>
         </div>
