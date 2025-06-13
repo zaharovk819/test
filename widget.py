@@ -412,50 +412,40 @@ class Widget(QMainWindow, MouseMoveMixin):
 
     def show_popup(self):
         popup_width = 460
-        popup_height = 360
+        popup_height = 240
         global_widget_pos = self.mapToGlobal(QPoint(0, 0))
         widget_rect = QRect(global_widget_pos, self.size())
+        desktop = QApplication.primaryScreen().availableGeometry()
 
-        target_screen = None
-        for screen in QApplication.screens():
-            if screen.geometry().contains(widget_rect.center()):
-                target_screen = screen
-                break
-        if target_screen is None:
-            target_screen = QApplication.primaryScreen()
-        desktop = target_screen.availableGeometry()
-
-        below_space = desktop.bottom() - widget_rect.bottom()
-        above_space = widget_rect.top() - desktop.top()
         right_space = desktop.right() - widget_rect.right()
         left_space = widget_rect.left() - desktop.left()
+        below_space = desktop.bottom() - widget_rect.bottom()
+        above_space = widget_rect.top() - desktop.top()
 
-        if below_space >= popup_height:
-            x = widget_rect.left() + (widget_rect.width() - popup_width) // 2
-            x = max(desktop.left(), min(x, desktop.right() - popup_width))
-            y = widget_rect.bottom()
-            popup_pos = QPoint(x, y)
-        elif above_space >= popup_height:
-            x = widget_rect.left() + (widget_rect.width() - popup_width) // 2
-            x = max(desktop.left(), min(x, desktop.right() - popup_width))
-            y = widget_rect.top() - popup_height
-            popup_pos = QPoint(x, y)
-        elif right_space >= popup_width:
+        if right_space >= popup_width:
             x = widget_rect.right()
             y = widget_rect.top() + (widget_rect.height() - popup_height) // 2
             y = max(desktop.top(), min(y, desktop.bottom() - popup_height))
-            popup_pos = QPoint(x, y)
         elif left_space >= popup_width:
             x = widget_rect.left() - popup_width
             y = widget_rect.top() + (widget_rect.height() - popup_height) // 2
             y = max(desktop.top(), min(y, desktop.bottom() - popup_height))
-            popup_pos = QPoint(x, y)
+        elif below_space >= popup_height:
+            x = widget_rect.left() + (widget_rect.width() - popup_width) // 2
+            x = max(desktop.left(), min(x, desktop.right() - popup_width))
+            y = widget_rect.bottom()
+        elif above_space >= popup_height:
+            x = widget_rect.left() + (widget_rect.width() - popup_width) // 2
+            x = max(desktop.left(), min(x, desktop.right() - popup_width))
+            y = widget_rect.top() - popup_height
         else:
-            popup_pos = QPoint(desktop.left(), desktop.top())
+            x = widget_rect.left() + (widget_rect.width() - popup_width) // 2
+            y = widget_rect.top() + (widget_rect.height() - popup_height) // 2
 
+        popup_pos = QPoint(x, y)
         if self.popup is None:
-            self.popup = QWebEngineView(None)
-            self.popup.setWindowFlags(Qt.FramelessWindowHint | Qt.ToolTip)
+            self.popup = QWebEngineView()
+            self.popup.setWindowFlags(Qt.Window | Qt.FramelessWindowHint | Qt.Tool)
             self.popup.setAttribute(Qt.WA_TranslucentBackground, True)
             self.popup.setAttribute(Qt.WA_ShowWithoutActivating)
             self.popup.setStyleSheet("background: transparent; border: none;")
@@ -463,6 +453,8 @@ class Widget(QMainWindow, MouseMoveMixin):
             self.popup.page().setBackgroundColor(Qt.transparent)
             self.popup.setAttribute(Qt.WA_TransparentForMouseEvents, True)
         else:
+            if self.popup.isVisible():
+                return
             self.popup.setFixedSize(popup_width, popup_height)
         self.popup.setHtml(HTML_POPUP_TEMPLATE)
         self.popup.move(popup_pos)
