@@ -427,8 +427,8 @@ class Widget(QMainWindow, MouseMoveMixin):
         pass
 
     def show_popup(self):
-        popup_width = 445
-        popup_height = 220
+        popup_width = 420
+        popup_height = 210
         global_widget_pos = self.mapToGlobal(QPoint(0, 0))
         widget_rect = QRect(global_widget_pos, self.size())
 
