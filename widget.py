@@ -415,14 +415,27 @@ class Widget(QMainWindow, MouseMoveMixin):
         popup_height = 240
         global_widget_pos = self.mapToGlobal(QPoint(0, 0))
         widget_rect = QRect(global_widget_pos, self.size())
-        desktop = QApplication.primaryScreen().availableGeometry()
+
+        matching_screen = None
+        for screen in QApplication.screens():
+            geo = screen.geometry()
+            if geo.contains(widget_rect.center()):
+                matching_screen = geo
+                break
+        if matching_screen is None:
+            matching_screen = QApplication.primaryScreen().availableGeometry()
+        desktop = matching_screen
 
         right_space = desktop.right() - widget_rect.right()
         left_space = widget_rect.left() - desktop.left()
         below_space = desktop.bottom() - widget_rect.bottom()
         above_space = widget_rect.top() - desktop.top()
 
-        if right_space >= popup_width:
+        if below_space < popup_height and above_space >= popup_height:
+            x = widget_rect.left() + (widget_rect.width() - popup_width) // 2
+            x = max(desktop.left(), min(x, desktop.right() - popup_width))
+            y = widget_rect.top() - popup_height
+        elif right_space >= popup_width:
             x = widget_rect.right()
             y = widget_rect.top() + (widget_rect.height() - popup_height) // 2
             y = max(desktop.top(), min(y, desktop.bottom() - popup_height))
@@ -441,6 +454,15 @@ class Widget(QMainWindow, MouseMoveMixin):
         else:
             x = widget_rect.left() + (widget_rect.width() - popup_width) // 2
             y = widget_rect.top() + (widget_rect.height() - popup_height) // 2
+
+        if x < desktop.left():
+            x = desktop.left()
+        if x + popup_width > desktop.right():
+            x = desktop.right() - popup_width
+        if y < desktop.top():
+            y = desktop.top()
+        if y + popup_height > desktop.bottom():
+            y = desktop.bottom() - popup_height
 
         popup_pos = QPoint(x, y)
         if self.popup is None:
