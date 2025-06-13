@@ -196,7 +196,7 @@ HTML_POPUP_TEMPLATE = """<!DOCTYPE html>
             </div>
             <div class="daily-challenge-popup__top-entry">
               <div class="daily-challenge-popup__top-title">Current Weekly Streak</div>
-              <div class="daily-challenge-popup__value daily-challenge-popup__value--fancy daily-challenge-popup__value--top" style="--colour:var(--level-tier-radiant)">666w</div>
+              <div class="daily-challenge-popup__value daily-challenge-popup__value--fancy daily-challenge-popup__value--top" style="--colour:var(--level-tier-radiant)">{weekly_streak_current}</div>
             </div>
           </div>
           <div class="daily-challenge-popup__content daily-challenge-popup__content--main">

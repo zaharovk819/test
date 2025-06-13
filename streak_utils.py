@@ -42,6 +42,7 @@ def get_daily_streak(
             streak_value = user.daily_challenge_user_stats.playcount
             last_update_date = user.daily_challenge_user_stats.last_update
             daily_streak_current = user.daily_challenge_user_stats.daily_streak_current
+            weekly_streak_current = user.daily_challenge_user_stats.weekly_streak_current
             if isinstance(last_update_date, str):
                 last_update_str = last_update_date.split(" ")[0]
             elif isinstance(last_update_date, datetime):
