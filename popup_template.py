@@ -2,6 +2,12 @@ HTML_POPUP_TEMPLATE = """<!DOCTYPE html>
 <html>
   <head>
     <style>
+      @font-face {{
+        font-family: 'Torus';
+        src: url("file://{font_path}") format("opentype");
+        font-weight: normal;
+        font-style: normal;
+      }}
       html, body {{
         overflow: hidden !important;
         scrollbar-width: none !important;
@@ -40,7 +46,7 @@ HTML_POPUP_TEMPLATE = """<!DOCTYPE html>
         --level-tier-rhodium: #d9f8d3, #a0cf96;
         --level-tier-radiant: #97dcff, #ed82ff;
         --level-tier-lustrous: #ffe600, #ed82ff;
-        font-family: var(--font-default-override, var(--font-default));
+        font-family: 'Torus', var(--font-default-override, var(--font-default));
       }}
       .daily-challenge-popup {{
         background: hsl(var(--hsl-b4));
