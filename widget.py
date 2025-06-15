@@ -521,11 +521,6 @@ class Widget(QMainWindow, MouseMoveMixin):
         daily_streak_best_colour_var = get_daily_streak_current_colour_var(self.popup_daily_streak_best)
         weekly_streak_best_colour_var = get_weekly_streak_current_colour_var(self.popup_weekly_streak_best)
 
-        font_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Torus-Regular.otf").replace("\\", "/")
-        if not font_path.startswith("/"):
-            font_path = "/" + font_path
-        font_path = font_path
-
         html = HTML_POPUP_TEMPLATE.format(
             streak_value=self.popup_streak_value,
             daily_streak_current=daily_streak_current_str,
@@ -538,8 +533,7 @@ class Widget(QMainWindow, MouseMoveMixin):
             daily_streak_colour_var=daily_streak_colour_var,
             weekly_streak_colour_var=weekly_streak_colour_var,
             daily_streak_best_colour_var=daily_streak_best_colour_var,
-            weekly_streak_best_colour_var=weekly_streak_best_colour_var,
-            font_path=font_path
+            weekly_streak_best_colour_var=weekly_streak_best_colour_var
         )
         self.popup.setHtml(html)
         self.popup.move(popup_pos)
