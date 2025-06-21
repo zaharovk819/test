@@ -95,6 +95,7 @@ class Widget(QMainWindow, MouseMoveMixin):
         self.cursor_check_timer.start()
         self._popup_visible = False
         self.installEventFilter(self)
+        self.is_active = False
 
     def recreate_popup(self):
         if self.popup is not None:
@@ -103,6 +104,8 @@ class Widget(QMainWindow, MouseMoveMixin):
             self.popup = None
 
     def check_cursor_over_widget(self):
+        if self.open_context_menu:  # Do not show popup when menu is open
+            return
         global_mouse_pos = QCursor.pos()
         widget_rect = QRect(self.mapToGlobal(QPoint(0, 0)), self.size())
         if widget_rect.contains(global_mouse_pos):
@@ -115,30 +118,39 @@ class Widget(QMainWindow, MouseMoveMixin):
                 self._popup_visible = False
 
     def eventFilter(self, obj, event):
-        if event.type() == QEvent.WindowDeactivate:
-            if not self.always_on_top and self.popup is not None and self.popup.isVisible():
-                self.set_popup_flags(always_on_top=False)
-                self.popup.lower()
-        elif event.type() == QEvent.WindowActivate:
-            if self.popup is not None and self.isVisible():
-                self.set_popup_flags(always_on_top=self.always_on_top)
-                if self.always_on_top:
+        if event.type() == QEvent.WindowActivate:
+            self.is_active = True
+            if not self.always_on_top:
+                self.raise_()
+                if self.popup and self.popup.isVisible():
                     self.popup.raise_()
+        elif event.type() == QEvent.WindowDeactivate:
+            self.is_active = False
+            if not self.always_on_top:
+                QTimer.singleShot(100, self.handle_deactivation)
         return super().eventFilter(obj, event)
+
+    def handle_deactivation(self):
+        if not self.is_active and not self.always_on_top:
+            self.lower()
+            if self.popup and self.popup.isVisible():
+                self.popup.lower()
 
     def set_popup_flags(self, always_on_top):
         if self.popup is None:
             return
         popup_flags = Qt.Window | Qt.FramelessWindowHint | Qt.Tool
-        if always_on_top:
+        if always_on_top or self.is_active:
             popup_flags |= Qt.WindowStaysOnTopHint
         was_visible = self.popup.isVisible()
         self.popup.hide()
         self.popup.setWindowFlags(popup_flags)
         if was_visible:
             self.popup.show()
-            if always_on_top:
+            if always_on_top or self.is_active:
                 self.popup.raise_()
+            else:
+                self.popup.lower()
 
     def init_tray_icon(self):
         icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'DCCW.ico')
@@ -427,7 +439,9 @@ class Widget(QMainWindow, MouseMoveMixin):
         event.accept()
 
     def createContextMenu(self):
+        self.context_menu_is_open = True
         createContextMenu(self)
+        self.context_menu_is_open = False
 
     def mousePressEvent(self, event):
         mousePressEvent(self, event)
@@ -452,6 +466,8 @@ class Widget(QMainWindow, MouseMoveMixin):
         pass
 
     def show_popup(self, html_override=None):
+        if self.open_context_menu:
+            return
         if self.popup is not None:
             self.popup.close()
             self.popup.deleteLater()
@@ -505,10 +521,10 @@ class Widget(QMainWindow, MouseMoveMixin):
         if y + popup_height > desktop.bottom():
             y = desktop.bottom() - popup_height
         popup_pos = QPoint(x, y)
-        popup_flags = Qt.Window | Qt.FramelessWindowHint | Qt.Tool
-        if self.always_on_top:
-            popup_flags |= Qt.WindowStaysOnTopHint
         self.popup = QWebEngineView()
+        popup_flags = Qt.Window | Qt.FramelessWindowHint | Qt.Tool
+        if self.always_on_top or self.is_active:
+            popup_flags |= Qt.WindowStaysOnTopHint
         self.popup.setWindowFlags(popup_flags)
         self.popup.setAttribute(Qt.WA_TranslucentBackground, True)
         self.popup.setAttribute(Qt.WA_ShowWithoutActivating)
@@ -554,7 +570,10 @@ class Widget(QMainWindow, MouseMoveMixin):
         self.popup.setHtml(html)
         self.popup.move(popup_pos)
         self.popup.show()
-        self.popup.raise_()
+        if self.always_on_top or self.is_active:
+            self.popup.raise_()
+        else:
+            self.popup.lower()
 
     def hide_popup(self):
         if self.popup is not None:
