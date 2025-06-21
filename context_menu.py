@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (
-    QAction, QWidgetAction, QWidget, QVBoxLayout, QLabel, QComboBox, QHBoxLayout, QApplication, QMenu, QToolTip, QSlider, QStyleOptionSlider
+    QAction, QWidgetAction, QWidget, QVBoxLayout, QLabel, QComboBox, QHBoxLayout, QApplication, QToolTip, QSlider, QStyleOptionSlider
 )
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QCursor
@@ -329,7 +329,7 @@ QComboBox QAbstractItemView::item {{
     versionAction.triggered.connect(copy_version_to_clipboard)
     menu.addAction(versionAction)
     menu.addSeparator()
-    exitAction = menu.addAction('Quit')
+    exitAction = menu.addAction('Close widget')
     exitAction.triggered.connect(self.closeApp)
     menu.setStyleSheet("""
         QMenu {

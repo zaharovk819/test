@@ -2,10 +2,10 @@ DEFAULT_TEMPLATE = """
 <!DOCTYPE html>
 <style>
   :root {{
-    --font-default: Torus
+    --font-default: DCCW
   }}
 @font-face {{
-        font-family: 'Torus';
+        font-family: 'DCCW';
         src: url(data:font/opentype;base64,{font_base64}) format("opentype");
         font-weight: normal;
         font-style: normal;
@@ -151,10 +151,10 @@ ALTERNATIVE_TEMPLATE = """
 <!DOCTYPE html>
 <style>
 :root {{
-    --font-default: Torus
+    --font-default: DCCW
 }}
 @font-face {{
-        font-family: 'Torus';
+        font-family: 'DCCW';
         src: url(data:font/opentype;base64,{font_base64}) format("opentype");
         font-weight: normal;
         font-style: normal;
